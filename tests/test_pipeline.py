@@ -79,16 +79,16 @@ class OutlierTests(unittest.TestCase):
                         vote_timestamp TIMESTAMP NOT NULL
                     )
                 """)
-                # Weekly totals: 1, 1, 1, 10. The mean is 3.25; only week 4 is >20% away.
+                # Weekly totals: 10, 10, 10, 15. Mean is 11.25; only week 4 is >20% away.
                 rows = []
-                for vote_id, count, start in (
-                    (1, 1, "2025-01-06"),
-                    (2, 1, "2025-01-13"),
-                    (3, 1, "2025-01-20"),
-                    (4, 10, "2025-01-27"),
-                ):
+                for index, (count, start) in enumerate((
+                    (10, "2025-01-06"),
+                    (10, "2025-01-13"),
+                    (10, "2025-01-20"),
+                    (15, "2025-01-27"),
+                ), start=1):
                     rows.extend(
-                        (vote_id * 100 + offset, start + " 12:00:00")
+                        (index * 100 + offset, start + " 12:00:00")
                         for offset in range(count)
                     )
                 connection.executemany(
@@ -98,7 +98,8 @@ class OutlierTests(unittest.TestCase):
                 result = connection.execute(
                     "SELECT week_start, total_votes FROM blog_analysis.outlier_weeks"
                 ).fetchall()
-                self.assertEqual(result, [(duckdb.sql("SELECT DATE '2025-01-27'").fetchone()[0], 10)])
+                expected_week = connection.execute("SELECT DATE '2025-01-27'").fetchone()[0]
+                self.assertEqual(result, [(expected_week, 15)])
 
 
 if __name__ == "__main__":

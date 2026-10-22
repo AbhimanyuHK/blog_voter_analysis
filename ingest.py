@@ -123,9 +123,9 @@ def ingest_votes(input_path: str | Path, database_path: str | Path = "votes.duck
         connection.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({definitions})")
 
         existing = {
-            row[1]: row[2]
+            row[0]: row[1]
             for row in connection.execute(
-                "SELECT * FROM information_schema.columns "
+                "SELECT column_name, data_type FROM information_schema.columns "
                 "WHERE table_schema = ? AND table_name = ?",
                 [SCHEMA, TABLE],
             ).fetchall()
